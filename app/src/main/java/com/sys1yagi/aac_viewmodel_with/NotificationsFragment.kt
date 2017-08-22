@@ -1,5 +1,6 @@
 package com.sys1yagi.aac_viewmodel_with
 
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v4.app.Fragment
 import android.support.v7.widget.DividerItemDecoration
@@ -19,10 +20,19 @@ import kotlinx.android.synthetic.main.fragment_notifications.view.recycler_view 
 class NotificationsFragment : Fragment() {
 
     companion object {
-        fun newInstance() = NotificationsFragment()
+        const val ARGS_IS_LEFT = "is_left"
+        fun newInstance(isLeft: Boolean) = NotificationsFragment().apply {
+            arguments = Bundle().apply {
+                putBoolean(ARGS_IS_LEFT, isLeft)
+            }
+        }
     }
 
+    val isLeft by lazy { arguments.getBoolean(ARGS_IS_LEFT) }
+
     val adapter = NotificationAdapter()
+
+    lateinit var viewModel: MainViewModel
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? =
             inflater.inflate(R.layout.fragment_notifications, container, false)
@@ -39,6 +49,7 @@ class NotificationsFragment : Fragment() {
 
     override fun onActivityCreated(savedInstanceState: Bundle?) {
         super.onActivityCreated(savedInstanceState)
+        viewModel = ViewModelProviders.of(activity).get(MainViewModel::class.java)
         loadData()
     }
 
@@ -48,6 +59,15 @@ class NotificationsFragment : Fragment() {
             adapter.items = 1.until(100).map { it.toString() }
             adapter.notifyDataSetChanged()
             view?.progress?.gone()
+            notifyUnread()
+        }
+    }
+
+    fun notifyUnread() {
+        if (isLeft) {
+            viewModel.left.value = Random().nextInt(30)
+        } else {
+            viewModel.right.value = Random().nextInt(30)
         }
     }
 }
